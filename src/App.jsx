@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import axios from 'axios'
 import TodoList from './components/TodoList'
 import AddTodoForm from './components/AddTodoForm'
 import './App.css'
@@ -12,11 +11,12 @@ function App() {
   useEffect(() => {
     const fetchTodos = async () => {
       try {
-        const response = await axios.get('https://jsonplaceholder.typicode.com/todos?_limit=5')
-        setTodos(response.data)
-        setLoading(false)
-      } catch (err) {
+        const res = await fetch('https://jsonplaceholder.typicode.com/todos?_limit=5')
+        const data = await res.json()
+        setTodos(data)
+      } catch {
         setError('Failed to fetch todos')
+      } finally {
         setLoading(false)
       }
     }
@@ -25,22 +25,25 @@ function App() {
 
   const addTodo = async (title) => {
     try {
-      const response = await axios.post('https://jsonplaceholder.typicode.com/todos', {
-        title,
-        completed: false,
-        userId: 1
+      const res = await fetch('https://jsonplaceholder.typicode.com/todos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, completed: false, userId: 1 })
       })
-      setTodos([response.data, ...todos])
-    } catch (err) {
+      const newTodo = await res.json()
+      setTodos([newTodo, ...todos])
+    } catch {
       setError('Failed to add todo')
     }
   }
 
   const deleteTodo = async (id) => {
     try {
-      await axios.delete(`https://jsonplaceholder.typicode.com/todos/${id}`)
+      await fetch(`https://jsonplaceholder.typicode.com/todos/${id}`, {
+        method: 'DELETE'
+      })
       setTodos(todos.filter(todo => todo.id !== id))
-    } catch (err) {
+    } catch {
       setError('Failed to delete todo')
     }
   }
